@@ -17,7 +17,6 @@ on:
     paths:
       - .github/workflows/build-docker.yml
 
-
 env:
   UV_BASE_IMG: ghcr.io/${{ github.repository_owner }}/uv
 
@@ -258,8 +257,8 @@ jobs:
   docker-republish:
     name: Annotate Docker image (ghcr.io/astral-sh/uv)
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     needs:
       - docker-publish-extra
     if: ${{ inputs.plan != '' && !fromJson(inputs.plan).announcement_tag_is_implicit }}
