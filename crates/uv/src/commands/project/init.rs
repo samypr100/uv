@@ -614,6 +614,8 @@ impl InitProjectKind {
         no_readme: bool,
         package: bool,
     ) -> Result<()> {
+        fs_err::create_dir_all(path)?;
+
         // Create the `pyproject.toml`
         let mut pyproject = pyproject_project(name, requires_python, no_readme);
 
@@ -629,8 +631,6 @@ impl InitProjectKind {
             pyproject.push_str(&pyproject_build_system(name, build_backend));
             pyproject_build_backend_prerequisites(name, path, build_backend)?;
         }
-
-        fs_err::create_dir_all(path)?;
 
         // Create the source structure.
         if package {
@@ -699,6 +699,7 @@ impl InitProjectKind {
         if !package {
             return Err(anyhow!("Library projects must be packaged"));
         }
+        fs_err::create_dir_all(path)?;
 
         // Create the `pyproject.toml`
         let mut pyproject = pyproject_project(name, requires_python, no_readme);
@@ -709,7 +710,6 @@ impl InitProjectKind {
         pyproject.push_str(&pyproject_build_system(name, build_backend));
         pyproject_build_backend_prerequisites(name, path, build_backend)?;
 
-        fs_err::create_dir_all(path)?;
         fs_err::write(path.join("pyproject.toml"), pyproject)?;
 
         // Create `src/{name}/__init__.py`, if it doesn't exist already.
