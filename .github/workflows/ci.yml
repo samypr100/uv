@@ -161,7 +161,7 @@ jobs:
     needs: determine_changes
     if: ${{ github.repository == 'astral-sh/uv' && (needs.determine_changes.outputs.code == 'true' || github.ref == 'refs/heads/main') }}
     runs-on:
-      labels: "ubuntu-latest-xlarge"
+      labels: "ubuntu-latest"
     name: "cargo test | ubuntu"
     steps:
       - uses: actions/checkout@v4
@@ -209,7 +209,7 @@ jobs:
     needs: determine_changes
     if: ${{ github.repository == 'astral-sh/uv' && (needs.determine_changes.outputs.code == 'true' || github.ref == 'refs/heads/main') }}
     runs-on:
-      labels: "macos-latest-xlarge"
+      labels: "macos-latest"
     name: "cargo test | macos"
     steps:
       - uses: actions/checkout@v4
@@ -250,7 +250,7 @@ jobs:
     needs: determine_changes
     if: ${{ github.repository == 'astral-sh/uv' && (needs.determine_changes.outputs.code == 'true' || github.ref == 'refs/heads/main') }}
     runs-on:
-      labels: "windows-latest-xlarge"
+      labels: "windows-latest"
     name: "cargo test | windows"
     steps:
       - uses: actions/checkout@v4
@@ -444,7 +444,7 @@ jobs:
     needs: determine_changes
     if: ${{ github.repository == 'astral-sh/uv' && (needs.determine_changes.outputs.code == 'true' || github.ref == 'refs/heads/main') }}
     runs-on:
-      labels: ubuntu-latest-large
+      labels: ubuntu-latest
     name: "build binary | linux"
     steps:
       - uses: actions/checkout@v4
@@ -495,7 +495,7 @@ jobs:
     needs: determine_changes
     if: ${{ github.repository == 'astral-sh/uv' && (needs.determine_changes.outputs.code == 'true' || github.ref == 'refs/heads/main') }}
     runs-on:
-      labels: macos-14-large
+      labels: macos-14
     name: "build binary | macos x86_64"
     steps:
       - uses: actions/checkout@v4
@@ -518,7 +518,7 @@ jobs:
     timeout-minutes: 10
     if: ${{ github.repository == 'astral-sh/uv' && (needs.determine_changes.outputs.code == 'true' || github.ref == 'refs/heads/main') }}
     runs-on:
-      labels: windows-latest-large
+      labels: windows-latest
     name: "build binary | windows"
     steps:
       - uses: actions/checkout@v4
@@ -1366,7 +1366,7 @@ jobs:
     timeout-minutes: 10
     needs: build-binary-macos-x86_64
     name: "check system | python on macos x86_64"
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
 
