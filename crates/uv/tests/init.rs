@@ -2794,7 +2794,6 @@ fn init_app_build_backend_meson() -> Result<()> {
             meson_version: '>= 1.2.3',
             default_options: [
                 'cpp_std=c++11',
-                'python.install_env=venv',
             ],
         )
 
@@ -3193,7 +3192,6 @@ fn init_lib_build_backend_meson() -> Result<()> {
             meson_version: '>= 1.2.3',
             default_options: [
                 'cpp_std=c++11',
-                'python.install_env=venv',
             ],
         )
 

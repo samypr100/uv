@@ -904,7 +904,6 @@ fn pyproject_build_backend_prerequisites(
                         meson_version: '>= 1.2.3',
                         default_options: [
                             'cpp_std=c++11',
-                            'python.install_env=venv',
                         ],
                     )
 
