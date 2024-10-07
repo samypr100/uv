@@ -2721,9 +2721,6 @@ fn init_app_build_backend_meson() -> Result<()> {
         [project.scripts]
         foo = "foo:main"
 
-        [tool.meson-python.args]
-        setup = ["--clearcache"]
-
         [build-system]
         requires = ["meson-python", "pybind11"]
         build-backend = "mesonpy"
@@ -3118,9 +3115,6 @@ fn init_lib_build_backend_meson() -> Result<()> {
         readme = "README.md"
         requires-python = ">=3.12"
         dependencies = []
-
-        [tool.meson-python.args]
-        setup = ["--clearcache"]
 
         [build-system]
         requires = ["meson-python", "pybind11"]

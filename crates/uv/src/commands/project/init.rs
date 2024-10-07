@@ -818,9 +818,6 @@ fn pyproject_build_system(package: &PackageName, build_backend: ProjectBuildBack
             "#}
         .to_string(),
         ProjectBuildBackend::Meson => indoc::indoc! {r#"
-                [tool.meson-python.args]
-                setup = ["--clearcache"]
-
                 [build-system]
                 requires = ["meson-python", "pybind11"]
                 build-backend = "mesonpy"
