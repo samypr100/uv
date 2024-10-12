@@ -1,12 +1,12 @@
 use std::env::current_dir;
 
+use crate::common::{uv_snapshot, TestContext};
 use anyhow::Result;
 use assert_cmd::prelude::*;
 use assert_fs::fixture::FileWriteStr;
 use assert_fs::fixture::PathChild;
 use indoc::indoc;
-
-use crate::common::{uv_snapshot, TestContext};
+use uv_static::EnvVars;
 
 #[test]
 fn show_empty() {
@@ -377,7 +377,7 @@ fn show_editable() -> Result<()> {
         .arg("../../scripts/packages/poetry_editable")
         .current_dir(current_dir()?)
         .env(
-            "CARGO_TARGET_DIR",
+            EnvVars::CARGO_TARGET_DIR,
             "../../../target/target_install_editable",
         )
         .assert()

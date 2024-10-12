@@ -1,13 +1,13 @@
 use std::process::Command;
 
+use crate::common::{uv_snapshot, TestContext};
 use anyhow::Result;
 use assert_cmd::prelude::OutputAssertExt;
 use assert_fs::prelude::*;
 use indoc::indoc;
 use insta::assert_snapshot;
 use predicates::prelude::predicate;
-
-use crate::common::{uv_snapshot, TestContext};
+use uv_static::EnvVars;
 
 #[test]
 fn init() {
@@ -2226,7 +2226,7 @@ fn init_git_not_installed() {
     let child = context.temp_dir.child("foo");
 
     // Without explicit `--vcs git`, `uv init` succeeds without initializing a Git repository.
-    uv_snapshot!(context.filters(), context.init().env("PATH", &*child).arg(child.as_ref()), @r###"
+    uv_snapshot!(context.filters(), context.init().env(EnvVars::PATH, &*child).arg(child.as_ref()), @r###"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -2238,7 +2238,7 @@ fn init_git_not_installed() {
     // With explicit `--vcs git`, `uv init` will fail.
     let child = context.temp_dir.child("bar");
     // Set `PATH` to child to make `git` command cannot be found.
-    uv_snapshot!(context.filters(), context.init().env("PATH", &*child).arg(child.as_ref()).arg("--vcs").arg("git"), @r###"
+    uv_snapshot!(context.filters(), context.init().env(EnvVars::PATH, &*child).arg(child.as_ref()).arg("--vcs").arg("git"), @r###"
     success: false
     exit_code: 2
     ----- stdout -----
@@ -2314,7 +2314,7 @@ fn init_with_author() {
         description = "Add your description here"
         readme = "README.md"
         authors = [
-            { name = "Alice", email = "alice@example.com" } 
+            { name = "Alice", email = "alice@example.com" }
         ]
         requires-python = ">=3.12"
         dependencies = []
@@ -2336,7 +2336,7 @@ fn init_with_author() {
         description = "Add your description here"
         readme = "README.md"
         authors = [
-            { name = "Alice", email = "alice@example.com" } 
+            { name = "Alice", email = "alice@example.com" }
         ]
         requires-python = ">=3.12"
         dependencies = []

@@ -29,6 +29,7 @@ use crate::virtualenv::{
     virtualenv_python_executable,
 };
 use crate::{Interpreter, PythonVersion};
+use uv_static::EnvVars;
 
 /// A request to find a Python installation.
 ///
@@ -344,7 +345,7 @@ fn python_executables_from_installed<'a>(
                 }
             };
 
-            env::var_os("UV_TEST_PYTHON_PATH")
+            env::var_os(EnvVars::UV_TEST_PYTHON_PATH)
                 .is_none()
                 .then(|| {
                     registry_pythons()
@@ -401,7 +402,7 @@ fn python_executables<'a>(
 ) -> Box<dyn Iterator<Item = Result<(PythonSource, PathBuf), Error>> + 'a> {
     // Always read from `UV_INTERNAL__PARENT_INTERPRETER` — it could be a system interpreter
     let from_parent_interpreter = std::iter::once_with(|| {
-        std::env::var_os("UV_INTERNAL__PARENT_INTERPRETER")
+        std::env::var_os(EnvVars::UV_INTERNAL__PARENT_INTERPRETER)
             .into_iter()
             .map(|path| Ok((PythonSource::ParentInterpreter, PathBuf::from(path))))
     })
@@ -443,8 +444,8 @@ fn python_executables_from_search_path<'a>(
     implementation: Option<&'a ImplementationName>,
 ) -> impl Iterator<Item = PathBuf> + 'a {
     // `UV_TEST_PYTHON_PATH` can be used to override `PATH` to limit Python executable availability in the test suite
-    let search_path =
-        env::var_os("UV_TEST_PYTHON_PATH").unwrap_or(env::var_os("PATH").unwrap_or_default());
+    let search_path = env::var_os(EnvVars::UV_TEST_PYTHON_PATH)
+        .unwrap_or(env::var_os(EnvVars::PATH).unwrap_or_default());
 
     let version_request = version.unwrap_or(&VersionRequest::Default);
     let possible_names: Vec<_> = version_request

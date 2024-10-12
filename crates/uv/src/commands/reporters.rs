@@ -7,13 +7,13 @@ use owo_colors::OwoColorize;
 use rustc_hash::FxHashMap;
 use url::Url;
 
+use crate::printer::Printer;
 use uv_distribution_types::{
     BuildableSource, CachedDist, DistributionMetadata, Name, SourceDist, VersionOrUrlRef,
 };
 use uv_normalize::PackageName;
 use uv_python::PythonInstallationKey;
-
-use crate::printer::Printer;
+use uv_static::EnvVars;
 
 #[derive(Debug)]
 struct ProgressReporter {
@@ -55,7 +55,7 @@ impl BarState {
 
 impl ProgressReporter {
     fn new(root: ProgressBar, multi_progress: MultiProgress, printer: Printer) -> ProgressReporter {
-        let mode = if env::var("JPY_SESSION_NAME").is_ok() {
+        let mode = if env::var(EnvVars::JPY_SESSION_NAME).is_ok() {
             // Disable concurrent progress bars when running inside a Jupyter notebook
             // because the Jupyter terminal does not support clearing previous lines.
             // See: https://github.com/astral-sh/uv/issues/3887.

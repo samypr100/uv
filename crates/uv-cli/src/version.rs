@@ -1,8 +1,7 @@
 //! Code for representing uv's release version number.
 // See also <https://github.com/astral-sh/ruff/blob/8118d29419055b779719cc96cdf3dacb29ac47c9/crates/ruff/src/version.rs>
-use std::fmt;
-
 use serde::Serialize;
+use std::fmt;
 
 /// Information about the git repository where uv was built from.
 #[derive(Serialize)]

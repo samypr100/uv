@@ -15,6 +15,7 @@ use crate::common::{
     build_vendor_links_url, get_bin, packse_index_url, uv_snapshot, venv_to_interpreter,
     TestContext,
 };
+use uv_static::EnvVars;
 
 fn assert_command(venv: &Path, command: &str, temp_dir: &Path) -> Assert {
     Command::new(venv_to_interpreter(venv))
@@ -49,7 +50,7 @@ fn command(context: &TestContext) -> Command {
         .arg("--find-links")
         .arg(build_vendor_links_url());
     context.add_shared_args(&mut command, true);
-    command.env_remove("UV_EXCLUDE_NEWER");
+    command.env_remove(EnvVars::UV_EXCLUDE_NEWER);
     command
 }
 

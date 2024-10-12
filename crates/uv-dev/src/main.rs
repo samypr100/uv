@@ -4,6 +4,15 @@ use std::process::ExitCode;
 use std::str::FromStr;
 use std::time::Instant;
 
+use crate::clear_compile::ClearCompileArgs;
+use crate::compile::CompileArgs;
+use crate::generate_all::Args as GenerateAllArgs;
+use crate::generate_cli_reference::Args as GenerateCliReferenceArgs;
+use crate::generate_json_schema::Args as GenerateJsonSchemaArgs;
+use crate::generate_options_reference::Args as GenerateOptionsReferenceArgs;
+#[cfg(feature = "render")]
+use crate::render_benchmarks::RenderBenchmarksArgs;
+use crate::wheel_metadata::WheelMetadataArgs;
 use anstream::eprintln;
 use anyhow::Result;
 use clap::Parser;
@@ -15,16 +24,7 @@ use tracing_subscriber::filter::Directive;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Layer};
-
-use crate::clear_compile::ClearCompileArgs;
-use crate::compile::CompileArgs;
-use crate::generate_all::Args as GenerateAllArgs;
-use crate::generate_cli_reference::Args as GenerateCliReferenceArgs;
-use crate::generate_json_schema::Args as GenerateJsonSchemaArgs;
-use crate::generate_options_reference::Args as GenerateOptionsReferenceArgs;
-#[cfg(feature = "render")]
-use crate::render_benchmarks::RenderBenchmarksArgs;
-use crate::wheel_metadata::WheelMetadataArgs;
+use uv_static::EnvVars;
 
 mod clear_compile;
 mod compile;
@@ -77,7 +77,7 @@ async fn run() -> Result<()> {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> ExitCode {
-    let (duration_layer, _guard) = if let Ok(location) = env::var("TRACING_DURATIONS_FILE") {
+    let (duration_layer, _guard) = if let Ok(location) = env::var(EnvVars::TRACING_DURATIONS_FILE) {
         let location = PathBuf::from(location);
         if let Some(parent) = location.parent() {
             fs_err::tokio::create_dir_all(&parent)

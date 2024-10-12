@@ -1,10 +1,10 @@
 use crate::common::uv_snapshot;
+use crate::common::TestContext;
 use anyhow::Result;
 use assert_cmd::prelude::*;
 use assert_fs::prelude::*;
 use indoc::indoc;
-
-use crate::common::TestContext;
+use uv_static::EnvVars;
 
 /// `cache prune` should be a no-op if there's nothing out-of-date in the cache.
 #[test]
@@ -79,8 +79,8 @@ fn prune_cached_env() {
     uv_snapshot!(context.filters(), context.tool_run()
         .arg("pytest@8.0.0")
         .arg("--version")
-        .env("UV_TOOL_DIR", tool_dir.as_os_str())
-        .env("XDG_BIN_HOME", bin_dir.as_os_str()), @r###"
+        .env(EnvVars::UV_TOOL_DIR, tool_dir.as_os_str())
+        .env(EnvVars::XDG_BIN_HOME, bin_dir.as_os_str()), @r###"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -180,7 +180,7 @@ fn prune_unzipped() -> Result<()> {
     " })?;
 
     // Install a requirement, to populate the cache.
-    uv_snapshot!(context.filters(), context.pip_install().arg("-r").env_remove("UV_EXCLUDE_NEWER").arg("requirements.txt").arg("--reinstall"), @r###"
+    uv_snapshot!(context.filters(), context.pip_install().arg("-r").env_remove(EnvVars::UV_EXCLUDE_NEWER).arg("requirements.txt").arg("--reinstall"), @r###"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -210,7 +210,7 @@ fn prune_unzipped() -> Result<()> {
     requirements_txt.write_str(indoc! { r"
         source-distribution==0.0.1
     " })?;
-    uv_snapshot!(context.filters(), context.pip_install().arg("-r").env_remove("UV_EXCLUDE_NEWER").arg("requirements.txt").arg("--offline"), @r###"
+    uv_snapshot!(context.filters(), context.pip_install().arg("-r").env_remove(EnvVars::UV_EXCLUDE_NEWER).arg("requirements.txt").arg("--offline"), @r###"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -226,7 +226,7 @@ fn prune_unzipped() -> Result<()> {
     requirements_txt.write_str(indoc! { r"
         iniconfig
     " })?;
-    uv_snapshot!(context.filters(), context.pip_install().arg("-r").env_remove("UV_EXCLUDE_NEWER").arg("requirements.txt").arg("--offline"), @r###"
+    uv_snapshot!(context.filters(), context.pip_install().arg("-r").env_remove(EnvVars::UV_EXCLUDE_NEWER).arg("requirements.txt").arg("--offline"), @r###"
     success: false
     exit_code: 1
     ----- stdout -----
