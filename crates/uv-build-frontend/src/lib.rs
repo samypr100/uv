@@ -615,6 +615,7 @@ impl SourceBuild {
             .runner
             .run_script(
                 &self.venv,
+                &self.pep517_backend.backend,
                 &script,
                 &self.source_tree,
                 &self.environment_variables,
@@ -738,6 +739,7 @@ impl SourceBuild {
             .runner
             .run_script(
                 &self.venv,
+                &pep517_backend.backend,
                 &script,
                 &self.source_tree,
                 &self.environment_variables,
@@ -850,6 +852,7 @@ async fn create_pep517_build_environment(
     let output = runner
         .run_script(
             venv,
+            &pep517_backend.backend,
             &script,
             source_tree,
             environment_variables,
@@ -977,6 +980,7 @@ impl PythonRunner {
     async fn run_script(
         &self,
         venv: &PythonEnvironment,
+        backend: &str,
         script: &str,
         source_tree: &Path,
         environment_variables: &FxHashMap<OsString, OsString>,
@@ -1011,6 +1015,7 @@ impl PythonRunner {
             .env(EnvVars::VIRTUAL_ENV, venv.root())
             .env(EnvVars::CLICOLOR_FORCE, "1")
             .env(EnvVars::PYTHONIOENCODING, "utf-8:backslashreplace")
+            .env(EnvVars::PEP517_BUILD_BACKEND, backend)
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
             .spawn()

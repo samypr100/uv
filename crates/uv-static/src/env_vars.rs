@@ -397,6 +397,10 @@ impl EnvVars {
     /// Use to control color via `anstyle`.
     pub const CLICOLOR_FORCE: &'static str = "CLICOLOR_FORCE";
 
+    /// Set by uv when calling a build script.
+    #[attr_hidden]
+    pub const PEP517_BUILD_BACKEND: &'static str = "PEP517_BUILD_BACKEND";
+
     /// The standard `PATH` env var.
     pub const PATH: &'static str = "PATH";
 
