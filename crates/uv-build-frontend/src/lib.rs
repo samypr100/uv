@@ -1011,6 +1011,7 @@ impl PythonRunner {
             .env(EnvVars::VIRTUAL_ENV, venv.root())
             .env(EnvVars::CLICOLOR_FORCE, "1")
             .env(EnvVars::PYTHONIOENCODING, "utf-8:backslashreplace")
+            .env("PEP517_BUILD_BACKEND", "setuptools.build_meta")
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
             .spawn()
