@@ -451,6 +451,10 @@ The standard `PAGER` posix env var. Used by `uv` to configure the appropriate pa
 
 The standard `PATH` env var.
 
+### `PEP517_BUILD_BACKEND`
+
+Set by uv's build frontend when invoking the build backend hooks.
+
 ### `PROMPT`
 
 Used to detect the use of the Windows Command Prompt (as opposed to PowerShell).
