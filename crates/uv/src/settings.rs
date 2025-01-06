@@ -79,7 +79,7 @@ impl GlobalSettings {
             verbose: args.verbose,
             color: if let Some(color_choice) = args.color {
                 // If `--color` is passed explicitly, use its value.
-                warn_user_once!("WAAAAT {}", args.color);
+                warn_user_once!("WAAAAT {:?}", args.color);
                 color_choice
             } else if std::env::var_os(EnvVars::NO_COLOR)
                 .filter(|v| !v.is_empty())
