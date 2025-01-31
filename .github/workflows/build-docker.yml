@@ -24,8 +24,8 @@ jobs:
   docker-build:
     name: Build Docker image (ghcr.io/astral-sh/uv) for ${{ matrix.platform }}
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     strategy:
       fail-fast: false
       matrix:
@@ -110,14 +110,16 @@ jobs:
   docker-publish:
     name: Publish Docker image (ghcr.io/astral-sh/uv)
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     needs:
       - docker-build
     if: ${{ inputs.plan != '' && !fromJson(inputs.plan).announcement_tag_is_implicit }}
     steps:
       # Login to DockerHub first, to avoid rate-limiting
       - uses: docker/login-action@v3
+        # PRs from forks don't have access to secrets, disable this step in that case.
+        if: ${{ github.event.pull_request.head.repo.full_name == 'astral-sh/uv' }}
         with:
           username: astralshbot
           password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
@@ -161,8 +163,8 @@ jobs:
   docker-publish-extra:
     name: Publish additional Docker image based on ${{ matrix.image-mapping }}
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     needs:
       - docker-publish
     if: ${{ inputs.plan != '' && !fromJson(inputs.plan).announcement_tag_is_implicit }}
@@ -200,6 +202,8 @@ jobs:
     steps:
       # Login to DockerHub first, to avoid rate-limiting
       - uses: docker/login-action@v3
+        # PRs from forks don't have access to secrets, disable this step in that case.
+        if: ${{ github.event.pull_request.head.repo.full_name == 'astral-sh/uv' }}
         with:
           username: astralshbot
           password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
@@ -292,8 +296,8 @@ jobs:
   docker-republish:
     name: Annotate Docker image (ghcr.io/astral-sh/uv)
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     needs:
       - docker-publish-extra
     if: ${{ inputs.plan != '' && !fromJson(inputs.plan).announcement_tag_is_implicit }}
@@ -304,6 +308,8 @@ jobs:
     steps:
       # Login to DockerHub first, to avoid rate-limiting
       - uses: docker/login-action@v3
+        # PRs from forks don't have access to secrets, disable this step in that case.
+        if: ${{ github.event.pull_request.head.repo.full_name == 'astral-sh/uv' }}
         with:
           username: astralshbot
           password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
