@@ -224,6 +224,11 @@ jobs:
       - plan
       - host
       - custom-publish-pypi
+    permissions:
+      contents: write
+      # Permissions used for actions/attest-build-provenance
+      id-token: write
+      attestations: write
     # use "always() && ..." to allow us to wait for all publish jobs while
     # still allowing individual publish jobs to skip themselves (for prereleases).
     # "host" however must run to completion, no skipping allowed!
@@ -246,6 +251,15 @@ jobs:
         run: |
           # Remove the granular manifests
           rm -f artifacts/*-dist-manifest.json
+      - name: Generate artifact attestations
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            artifacts/*.json
+            artifacts/*.sh
+            artifacts/*.ps1
+            artifacts/*.zip
+            artifacts/*.tar.gz
       - name: Create GitHub Release
         env:
           PRERELEASE_FLAG: "${{ fromJson(needs.host.outputs.val).announcement_is_prerelease && '--prerelease' || '' }}"
