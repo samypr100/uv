@@ -36,8 +36,8 @@ jobs:
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-build') }}
     name: Build Docker image (ghcr.io/astral-sh/uv) for ${{ matrix.platform }}
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     strategy:
       fail-fast: false
       matrix:
@@ -49,13 +49,13 @@ jobs:
         with:
           submodules: recursive
 
-      # Login to DockerHub first, to avoid rate-limiting
-      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
-        # PRs from forks don't have access to secrets, disable this step in that case.
-        if: ${{ github.event.pull_request.head.repo.full_name == 'astral-sh/uv' }}
-        with:
-          username: astralshbot
-          password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
+#      # Login to DockerHub first, to avoid rate-limiting
+#      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+#        # PRs from forks don't have access to secrets, disable this step in that case.
+#        if: ${{ github.event.pull_request.head.repo.full_name == 'astral-sh/uv' }}
+#        with:
+#          username: astralshbot
+#          password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
 
       - uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
@@ -122,17 +122,17 @@ jobs:
   docker-publish:
     name: Publish Docker image (ghcr.io/astral-sh/uv)
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     needs:
       - docker-build
     if: ${{ inputs.plan != '' && !fromJson(inputs.plan).announcement_tag_is_implicit }}
     steps:
       # Login to DockerHub first, to avoid rate-limiting
-      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
-        with:
-          username: astralshbot
-          password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
+#      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+#        with:
+#          username: astralshbot
+#          password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
 
       - name: Download digests
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -173,8 +173,8 @@ jobs:
   docker-publish-extra:
     name: Publish additional Docker image based on ${{ matrix.image-mapping }}
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     needs:
       - docker-publish
     if: ${{ inputs.plan != '' && !fromJson(inputs.plan).announcement_tag_is_implicit }}
@@ -214,10 +214,10 @@ jobs:
           - python:3.8-slim-bookworm,python3.8-bookworm-slim
     steps:
       # Login to DockerHub first, to avoid rate-limiting
-      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
-        with:
-          username: astralshbot
-          password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
+#      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+#        with:
+#          username: astralshbot
+#          password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
 
       - uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
@@ -294,11 +294,11 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
 
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
-        with:
-          subject-name: ${{ env.UV_BASE_IMG }}
-          subject-digest: ${{ steps.build-and-push.outputs.digest }}
+#      - name: Generate artifact attestation
+#        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+#        with:
+#          subject-name: ${{ env.UV_BASE_IMG }}
+#          subject-digest: ${{ steps.build-and-push.outputs.digest }}
           # push-to-registry is explicitly not enabled to maintain full control over the top image
 
   # This is effectively a duplicate of `docker-publish` to make https://github.com/astral-sh/uv/pkgs/container/uv
@@ -307,8 +307,8 @@ jobs:
   docker-republish:
     name: Annotate Docker image (ghcr.io/astral-sh/uv)
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     needs:
       - docker-publish-extra
     if: ${{ inputs.plan != '' && !fromJson(inputs.plan).announcement_tag_is_implicit }}
@@ -318,10 +318,10 @@ jobs:
       id-token: write # needed for signing the images with GitHub OIDC Token
     steps:
       # Login to DockerHub first, to avoid rate-limiting
-      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
-        with:
-          username: astralshbot
-          password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
+#      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+#        with:
+#          username: astralshbot
+#          password: ${{ secrets.DOCKERHUB_TOKEN_RO }}
 
       - name: Download digests
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -383,9 +383,9 @@ jobs:
           )"
           echo "digest=${digest}" >> "$GITHUB_OUTPUT"
 
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
-        with:
-          subject-name: ${{ env.UV_BASE_IMG }}
-          subject-digest: ${{ steps.manifest-digest.outputs.digest }}
+#      - name: Generate artifact attestation
+#        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+#        with:
+#          subject-name: ${{ env.UV_BASE_IMG }}
+#          subject-digest: ${{ steps.manifest-digest.outputs.digest }}
           # push-to-registry is explicitly not enabled to maintain full control over the top image
