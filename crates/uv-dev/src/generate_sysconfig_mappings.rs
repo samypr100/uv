@@ -11,7 +11,7 @@ use crate::ROOT_DIR;
 use crate::generate_all::Mode;
 
 /// Contains current supported targets
-const TARGETS_YML_URL: &str = "https://raw.githubusercontent.com/astral-sh/python-build-standalone/main/cpython-unix/targets.yml";
+const TARGETS_YML_URL: &str = "https://raw.githubusercontent.com/astral-sh/python-build-standalone/refs/tags/20250517/cpython-unix/targets.yml";
 
 #[derive(clap::Args)]
 pub(crate) struct Args {
