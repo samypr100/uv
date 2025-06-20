@@ -142,12 +142,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Generate artifact attestation for base image
-        if: ${{ needs.docker-plan.outputs.push == 'true' }}
-        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
-        with:
-          subject-name: ${{ env.UV_GHCR_IMAGE }}
-          subject-digest: ${{ steps.build.outputs.digest }}
+#      - name: Generate artifact attestation for base image
+#        if: ${{ needs.docker-plan.outputs.push == 'true' }}
+#        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+#        with:
+#          subject-name: ${{ env.UV_GHCR_IMAGE }}
+#          subject-digest: ${{ steps.build.outputs.digest }}
           # push-to-registry is explicitly not enabled to maintain full control over the top image
 
   docker-publish-extra:
@@ -273,11 +273,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
-        with:
-          subject-name: ${{ env.UV_GHCR_IMAGE }}
-          subject-digest: ${{ steps.build-and-push.outputs.digest }}
+#      - name: Generate artifact attestation
+#        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+#        with:
+#          subject-name: ${{ env.UV_GHCR_IMAGE }}
+#          subject-digest: ${{ steps.build-and-push.outputs.digest }}
           #1 push-to-registry is explicitly not enabled to maintain full control over the top image
 
   # Re-tag the base image, to ensure it's shown as the newest on the registry UI
