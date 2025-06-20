@@ -117,6 +117,9 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        # ghcr.io prefers index level annotations
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index
         with:
           images: |
             ${{ env.UV_GHCR_IMAGE }}
@@ -145,6 +148,7 @@ jobs:
         with:
           subject-name: ${{ env.UV_GHCR_IMAGE }}
           subject-digest: ${{ steps.build.outputs.digest }}
+          # push-to-registry is explicitly not enabled to maintain full control over the top image
 
   docker-publish-extra:
     name: ${{ needs.docker-plan.outputs.action }} ${{ matrix.image-mapping }}
@@ -274,6 +278,7 @@ jobs:
         with:
           subject-name: ${{ env.UV_GHCR_IMAGE }}
           subject-digest: ${{ steps.build-and-push.outputs.digest }}
+          #1 push-to-registry is explicitly not enabled to maintain full control over the top image
 
   # Re-tag the base image, to ensure it's shown as the newest on the registry UI
   docker-retag-base:
