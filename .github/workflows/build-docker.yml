@@ -76,8 +76,8 @@ jobs:
       id-token: write # for Depot OIDC and GHCR signing
       packages: write # for GHCR image pushes
       attestations: write # for GHCR attestations
-    environment:
-      name: release
+#    environment:
+#      name: release
     outputs:
       image-tags: ${{ steps.meta.outputs.tags }}
       image-digest: ${{ steps.build.outputs.digest }}
@@ -153,8 +153,8 @@ jobs:
   docker-publish-extra:
     name: ${{ needs.docker-plan.outputs.action }} ${{ matrix.image-mapping }}
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     needs:
       - docker-plan
       - docker-publish-base
@@ -284,8 +284,8 @@ jobs:
   docker-retag-base:
     name: retag uv
     runs-on: ubuntu-latest
-    environment:
-      name: release
+#    environment:
+#      name: release
     needs:
       - docker-plan
       - docker-publish-base
