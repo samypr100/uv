@@ -38,7 +38,7 @@ on:
 
 env:
   UV_GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/uv
-  UV_DOCKERHUB_IMAGE: docker.io/astral/uv
+  UV_DOCKERHUB_IMAGE: docker.io/samy100/uv
 
 jobs:
   docker-plan:
@@ -131,7 +131,8 @@ jobs:
         id: build
         uses: depot/build-push-action@636daae76684e38c301daa0c5eca1c095b24e780 # v1.14.0
         with:
-          project: 7hd4vdzmw5 # astral-sh/uv
+          token: ${{ secrets.DEPOT_TOKEN }}
+          project: 9vkbgs7s9d # astral-sh/uv
           context: .
           platforms: linux/amd64,linux/arm64
           push: ${{ needs.docker-plan.outputs.push }}
@@ -260,13 +261,13 @@ jobs:
         id: build-and-push
         uses: depot/build-push-action@636daae76684e38c301daa0c5eca1c095b24e780 # v1.14.0
         with:
+          token: ${{ secrets.DEPOT_TOKEN }}
           context: .
-          project: 7hd4vdzmw5 # astral-sh/uv
+          project: 9vkbgs7s9d # astral-sh/uv
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          annotations: ${{ steps.meta.outputs.annotations }}
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
