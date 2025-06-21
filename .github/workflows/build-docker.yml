@@ -299,9 +299,11 @@ jobs:
           set -x
           readarray -t lines <<< "$ANNOTATIONS"; annotations=(); for line in "${lines[@]}"; do annotations+=(--annotation "$line"); done
           for image in $IMAGES; do
+            readarray -t lines < <(grep "^${image}:" <<< "$TAGS"); tags=(); for line in "${lines[@]}"; do tags+=(-t "$line"); done
             docker buildx imagetools create \
-            $(jq -cr --arg img "${image}" '.tags | map(select(startswith($img)) | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            "${image}@${DIGEST}"
+              "${annotations[@]}" \
+              "${tags[@]}" \
+              "${image}@${DIGEST}"
           done
 
       # See `docker-annotate-base` for details.
@@ -372,9 +374,11 @@ jobs:
           set -x
           readarray -t lines <<< "$ANNOTATIONS"; annotations=(); for line in "${lines[@]}"; do annotations+=(--annotation "$line"); done
           for image in $IMAGES; do
+            readarray -t lines < <(grep "^${image}:" <<< "$TAGS"); tags=(); for line in "${lines[@]}"; do tags+=(-t "$line"); done
             docker buildx imagetools create \
-            $(jq -cr --arg img "${image}" '.tags | map(select(startswith($img)) | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            "${image}@${DIGEST}"
+              "${annotations[@]}" \
+              "${tags[@]}" \
+              "${image}@${DIGEST}"
           done
 
       # Now that we've modified the manifest, we need to attest it again.
