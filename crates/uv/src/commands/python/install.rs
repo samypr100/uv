@@ -29,6 +29,8 @@ use uv_python::{
     PythonVersionFile, VersionFileDiscoveryOptions, VersionFilePreference, VersionRequest,
 };
 use uv_shell::Shell;
+#[cfg(windows)]
+use uv_trampoline_builder::{Launcher, LauncherKind};
 use uv_warnings::{warn_user, write_error_chain};
 
 use crate::commands::python::{ChangeEvent, ChangeEventKind};
@@ -1031,33 +1033,20 @@ fn find_matching_bin_link<'a>(
     mut installations: impl Iterator<Item = &'a ManagedPythonInstallation>,
     path: &Path,
 ) -> Option<&'a ManagedPythonInstallation> {
-    #[cfg(not(any(unix, windows)))]
-    {
-        unreachable!("Only Windows and Unix are supported");
-    }
-
-    #[cfg(unix)]
-    {
-        let target = if !path.is_symlink() {
+    let target = if cfg!(unix) {
+        if !path.is_symlink() {
             return None;
-        } else {
-            fs_err::canonicalize(path).ok()?
-        };
+        }
+        fs_err::canonicalize(path).ok()?
+    } else if cfg!(windows) {
+        let launcher = Launcher::try_from_path(path).ok()??;
+        if !matches!(launcher.kind, LauncherKind::Python) {
+            return None;
+        }
+        dunce::canonicalize(launcher.python_path).ok()?
+    } else {
+        unreachable!("Only Windows and Unix are supported")
+    };
 
-        installations.find(|installation| installation.executable(false) == target)
-    }
-    #[cfg(windows)]
-    {
-        let target = {
-            use uv_trampoline_builder::{Launcher, LauncherKind};
-
-            let launcher: Launcher = Launcher::try_from_path(path).ok()??;
-            if !matches!(launcher.kind, LauncherKind::Python) {
-                return None;
-            }
-            dunce::canonicalize(launcher.python_path).ok()?
-        };
-
-        installations.find(|installation| installation.executable(false) == target)
-    }
+    installations.find(|installation| installation.executable(false) == target)
 }
