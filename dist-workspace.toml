@@ -70,6 +70,8 @@ install-path = [
     "$XDG_DATA_HOME/../bin",
     "~/.local/bin"
 ]
+# allow dirty
+allow-dirty = ["ci"]
 
 [dist.github-custom-runners]
 global = "depot-ubuntu-latest-4"

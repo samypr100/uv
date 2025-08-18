@@ -38,7 +38,7 @@ on:
 
 env:
   UV_GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/uv
-  UV_DOCKERHUB_IMAGE: docker.io/astral/uv
+  UV_DOCKERHUB_IMAGE: docker.io/samypr100/uv
 
 permissions: {}
 
@@ -56,7 +56,7 @@ jobs:
         env:
           DRY_RUN: ${{ inputs.plan == '' || fromJson(inputs.plan).announcement_tag_is_implicit }}
           TAG: ${{ inputs.plan != '' && fromJson(inputs.plan).announcement_tag }}
-          IS_LOCAL_PR: ${{ github.event.pull_request.head.repo.full_name == 'astral-sh/uv' }}
+          IS_LOCAL_PR: ${{ github.event.pull_request.head.repo.full_name == 'samypr100/uv' }}
         id: plan
         run: |
           if [ "${DRY_RUN}" == "false" ]; then
@@ -82,8 +82,8 @@ jobs:
       id-token: write # for Depot OIDC and GHCR signing
       packages: write # for GHCR image pushes
       attestations: write # for GHCR attestations
-    environment:
-      name: ${{ needs.docker-plan.outputs.push == 'true' && 'release' || '' }}
+#    environment:
+#      name: ${{ needs.docker-plan.outputs.push == 'true' && 'release' || '' }}
     outputs:
       image-tags: ${{ steps.meta.outputs.tags }}
       image-annotations: ${{ steps.meta.outputs.annotations }}
@@ -99,7 +99,7 @@ jobs:
       - uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         if: ${{ needs.docker-plan.outputs.login == 'true' }}
         with:
-          username: ${{ needs.docker-plan.outputs.push == 'true' && 'astral' || 'astralshbot' }}
+          username: ${{ needs.docker-plan.outputs.push == 'true' && 'samypr100' || 'samypr100' }}
           password: ${{ needs.docker-plan.outputs.push == 'true' && secrets.DOCKERHUB_TOKEN_RW || secrets.DOCKERHUB_TOKEN_RO }}
 
       - uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
@@ -144,7 +144,7 @@ jobs:
         id: build
         uses: depot/build-push-action@9785b135c3c76c33db102e45be96a25ab55cd507 # v1.16.2
         with:
-          project: 7hd4vdzmw5 # astral-sh/uv
+          project: s46lwks5ft # astral-sh/uv
           context: .
           platforms: linux/amd64,linux/arm64
           push: ${{ needs.docker-plan.outputs.push }}
@@ -163,8 +163,8 @@ jobs:
   docker-publish-extra:
     name: ${{ needs.docker-plan.outputs.action }} ${{ matrix.image-mapping }}
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ needs.docker-plan.outputs.push == 'true' && 'release' || '' }}
+#    environment:
+#      name: ${{ needs.docker-plan.outputs.push == 'true' && 'release' || '' }}
     needs:
       - docker-plan
       - docker-publish-base
@@ -222,7 +222,7 @@ jobs:
       - uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         if: ${{ needs.docker-plan.outputs.login == 'true' }}
         with:
-          username: ${{ needs.docker-plan.outputs.push == 'true' && 'astral' || 'astralshbot' }}
+          username: ${{ needs.docker-plan.outputs.push == 'true' && 'samypr100' || 'samypr100' }}
           password: ${{ needs.docker-plan.outputs.push == 'true' && secrets.DOCKERHUB_TOKEN_RW || secrets.DOCKERHUB_TOKEN_RO }}
 
       - uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
@@ -293,7 +293,7 @@ jobs:
         uses: depot/build-push-action@9785b135c3c76c33db102e45be96a25ab55cd507 # v1.16.2
         with:
           context: .
-          project: 7hd4vdzmw5 # astral-sh/uv
+          project: s46lwks5ft # astral-sh/uv
           platforms: linux/amd64,linux/arm64
           push: ${{ needs.docker-plan.outputs.push }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -361,8 +361,8 @@ jobs:
       id-token: write # for GHCR signing
       packages: write # for GHCR image pushes
       attestations: write # for GHCR attestations
-    environment:
-      name: ${{ needs.docker-plan.outputs.push == 'true' && 'release' || '' }}
+#    environment:
+#      name: ${{ needs.docker-plan.outputs.push == 'true' && 'release' || '' }}
     needs:
       - docker-plan
       - docker-publish-base
@@ -371,7 +371,7 @@ jobs:
     steps:
       - uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
-          username: astral
+          username: samypr100
           password: ${{ secrets.DOCKERHUB_TOKEN_RW }}
 
       - uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
