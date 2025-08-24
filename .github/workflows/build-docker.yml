@@ -150,7 +150,6 @@ jobs:
           push: ${{ needs.docker-plan.outputs.push }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # TODO(zanieb): Annotations are not supported by Depot yet and are ignored
           annotations: ${{ steps.meta.outputs.annotations }}
 
       - name: Generate artifact attestation for base image
@@ -298,7 +297,6 @@ jobs:
           push: ${{ needs.docker-plan.outputs.push }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # TODO(zanieb): Annotations are not supported by Depot yet and are ignored
           annotations: ${{ steps.meta.outputs.annotations }}
 
       - name: Generate artifact attestation
@@ -307,50 +305,6 @@ jobs:
         with:
           subject-name: ${{ env.UV_GHCR_IMAGE }}
           subject-digest: ${{ steps.build-and-push.outputs.digest }}
-
-      # Push annotations manually.
-      # See `docker-annotate-base` for details.
-      - name: Add annotations to images
-        if: ${{ needs.docker-plan.outputs.push == 'true' }}
-        env:
-          IMAGES: "${{ env.UV_GHCR_IMAGE }} ${{ env.UV_DOCKERHUB_IMAGE }}"
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
-          TAGS: ${{ steps.meta.outputs.tags }}
-          ANNOTATIONS: ${{ steps.meta.outputs.annotations }}
-        run: |
-          set -x
-          readarray -t lines <<< "$ANNOTATIONS"; annotations=(); for line in "${lines[@]}"; do annotations+=(--annotation "$line"); done
-          for image in $IMAGES; do
-            readarray -t lines < <(grep "^${image}:" <<< "$TAGS"); tags=(); for line in "${lines[@]}"; do tags+=(-t "$line"); done
-            docker buildx imagetools create \
-              "${annotations[@]}" \
-              "${tags[@]}" \
-              "${image}@${DIGEST}"
-          done
-
-      # See `docker-annotate-base` for details.
-      - name: Export manifest digest
-        id: manifest-digest
-        if: ${{ needs.docker-plan.outputs.push == 'true' }}
-        env:
-          IMAGE: ${{ env.UV_GHCR_IMAGE }}
-          VERSION: ${{ steps.meta.outputs.version }}
-        run: |
-          digest="$(
-            docker buildx imagetools inspect \
-              "${IMAGE}:${VERSION}" \
-              --format '{{json .Manifest}}' \
-            | jq -r '.digest'
-          )"
-          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
-
-      # See `docker-annotate-base` for details.
-      - name: Generate artifact attestation
-        if: ${{ needs.docker-plan.outputs.push == 'true' }}
-        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
-        with:
-          subject-name: ${{ env.UV_GHCR_IMAGE }}
-          subject-digest: ${{ steps.manifest-digest.outputs.digest }}
 
   # Annotate the base image
   docker-annotate-base:
@@ -380,11 +334,8 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Depot doesn't support annotating images, so we need to do so manually
-      # afterwards. Mutating the manifest is desirable regardless, because we
-      # want to bump the base image to appear at the top of the list on GHCR.
-      # However, once annotation support is added to Depot, this step can be
-      # minimized to just touch the GHCR manifest.
+      # Mutating the manifest is desirable because we want to bump the base
+      # image to appear at the top of the list on GHCR and DockerHub.
       - name: Add annotations to images
         env:
           IMAGES: "${{ env.UV_GHCR_IMAGE }} ${{ env.UV_DOCKERHUB_IMAGE }}"
@@ -411,7 +362,7 @@ jobs:
         env:
           IMAGE: ${{ env.UV_GHCR_IMAGE }}
           VERSION: ${{ needs.docker-publish-base.outputs.image-version }}
-        # To sign the manifest, we need it's digest. Unfortunately "docker
+        # To sign the manifest, we need its digest. Unfortunately "docker
         # buildx imagetools create" does not (yet) have a clean way of sharing
         # the digest of the manifest it creates (see docker/buildx#2407), so
         # we use a separate command to retrieve it.
