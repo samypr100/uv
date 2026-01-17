@@ -39,7 +39,7 @@ debug = false
 [dependencies]
 uv-static = { path = "../uv-static" }
 
-windows = { version = "0.61.0", features = [
+windows = { version = "0.61.3", features = [
   "std",
   "Win32_Foundation",
   "Win32_Security",
@@ -58,4 +58,4 @@ dunce = { version = "1.0.5" }
 [build-dependencies]
 uv-static = { path = "../uv-static" }
 
-embed-manifest = "1.4.0"
+embed-manifest = "1.5.0"
