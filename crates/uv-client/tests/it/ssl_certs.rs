@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::io::Write;
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
@@ -16,7 +17,7 @@ use uv_redacted::DisplaySafeUrl;
 use uv_static::EnvVars;
 
 use crate::http_util::{
-    SelfSigned, generate_self_signed_certs_with_ca,
+    SelfSigned, generate_expired_self_signed_certs_with_ca, generate_self_signed_certs_with_ca,
     generate_self_signed_certs_with_ca_custom_extensions, start_https_mtls_user_agent_server,
     start_https_user_agent_server, test_cert_dir,
 };
@@ -42,6 +43,12 @@ impl TestCertificate {
     /// relevant PEM files to a temporary directory.
     fn new() -> Result<Self> {
         let (ca, server, client) = generate_self_signed_certs_with_ca()?;
+        Self::persist(ca, server, &client)
+    }
+
+    /// Generate a fresh certificate set whose server certificate is expired.
+    fn new_expired() -> Result<Self> {
+        let (ca, server, client) = generate_expired_self_signed_certs_with_ca()?;
         Self::persist(ca, server, &client)
     }
 
@@ -189,10 +196,28 @@ impl TestClient {
     }
 
     /// Assert that an HTTPS connection to `cert`'s server fails with a TLS
-    /// error on the client side.
+    /// `UnknownIssuer` error on the client side.
     async fn expect_https_connect_fails(&self, cert: &TestCertificate) {
+        self.expect_https_connect_fails_with_tls_error(cert, |tls_err| {
+            assert_eq!(
+                tls_err,
+                &rustls::Error::InvalidCertificate(rustls::CertificateError::UnknownIssuer)
+            );
+        })
+        .await;
+    }
+
+    /// Assert that an HTTPS connection to `cert`'s server fails with a
+    /// specific TLS error on the client side.
+    async fn expect_https_connect_fails_with_tls_error<F>(
+        &self,
+        cert: &TestCertificate,
+        assert_tls_error: F,
+    ) where
+        F: FnOnce(&rustls::Error),
+    {
         self.run_https(cert, |response, server_task| async move {
-            assert_connection_error(&response);
+            assert_connection_tls_error(&response, assert_tls_error);
             // Server may or may not have errored — just ensure no panic.
             let _ = server_task.await;
         })
@@ -286,15 +311,34 @@ impl TestClient {
     }
 
     /// Assert that an HTTPS connection to a public host fails with a TLS
-    /// error on the client side.
+    /// `UnknownIssuer` error on the client side.
     #[cfg(feature = "test-pypi")]
     async fn expect_https_connect_fails_for_host(&self, host: &str) {
+        self.expect_https_connect_fails_for_host_with_tls_error(host, |tls_err| {
+            assert_eq!(
+                tls_err,
+                &rustls::Error::InvalidCertificate(rustls::CertificateError::UnknownIssuer)
+            );
+        })
+        .await;
+    }
+
+    /// Assert that an HTTPS connection to a public host fails with a
+    /// specific TLS error on the client side.
+    #[cfg(feature = "test-pypi")]
+    async fn expect_https_connect_fails_for_host_with_tls_error<F>(
+        &self,
+        host: &str,
+        assert_tls_error: F,
+    ) where
+        F: FnOnce(&rustls::Error),
+    {
         let url = DisplaySafeUrl::from_str(&format!("https://{host}/")).unwrap();
         let vars = self.ssl_vars();
         let system_certs = self.system_certs;
         async_with_vars(vars, async {
             let response = send_request_to(&url, system_certs).await;
-            assert_connection_error(&response);
+            assert_connection_tls_error(&response, assert_tls_error);
         })
         .await;
     }
@@ -372,7 +416,7 @@ async fn send_request_to(
         .await
 }
 
-/// Assert that a request result is a TLS connection error.
+/// Assert that a request result is a retried connection error.
 fn assert_connection_error(res: &Result<reqwest::Response, reqwest_middleware::Error>) {
     let Some(reqwest_middleware::Error::Middleware(middleware_error)) = res.as_ref().err() else {
         panic!("expected middleware error, got: {res:?}");
@@ -392,12 +436,63 @@ fn assert_connection_error(res: &Result<reqwest::Response, reqwest_middleware::E
     assert!(reqwest_error.is_connect());
 }
 
+/// Assert that a request result is a [`rustls::Error`] error.
+///
+/// We retrieve the hyper rustls client error directly as no retries should occur.
+/// We're explicit with our error chains to be sensitive to any dependency changes.
+fn assert_connection_tls_error<F>(
+    res: &Result<reqwest::Response, reqwest_middleware::Error>,
+    assert_tls_error: F,
+) where
+    F: FnOnce(&rustls::Error),
+{
+    let Some(reqwest_middleware::Error::Middleware(middleware_error)) = res.as_ref().err() else {
+        panic!("expected middleware error, got: {res:?}");
+    };
+    let tls_error = if let Some(err) = middleware_error.source()
+        && let Some(err) = err.downcast_ref::<hyper_util::client::legacy::Error>()
+        && let Some(err) = err.source()
+        && let Some(err) = err.downcast_ref::<std::io::Error>()
+        && let Some(err) = err.get_ref()
+        && let Some(err) = err.downcast_ref::<std::io::Error>()
+        && let Some(err) = err.get_ref()
+        && let Some(tls_error) = err.downcast_ref::<rustls::Error>()
+    {
+        tls_error
+    } else {
+        panic!("expected TLS error in chain, got: {middleware_error:?}");
+    };
+    assert_tls_error(tls_error);
+}
+
 /// A self-signed server certificate is rejected when no custom certs are
 /// configured — the bundled webpki roots don't include our test CA.
 #[tokio::test]
 async fn test_no_custom_certs_rejects_self_signed() -> Result<()> {
     let cert = TestCertificate::new()?;
     client().expect_https_connect_fails(&cert).await;
+    Ok(())
+}
+
+/// An expired server certificate is rejected with a TLS error.
+#[tokio::test]
+async fn test_expired_cert_rejected() -> Result<()> {
+    let cert = TestCertificate::new_expired()?;
+    client()
+        .ssl_cert_file(&cert.trust_path)
+        .expect_https_connect_fails_with_tls_error(&cert, |tls_err| {
+            assert!(
+                matches!(
+                    tls_err,
+                    rustls::Error::InvalidCertificate(
+                        rustls::CertificateError::Expired
+                            | rustls::CertificateError::ExpiredContext { .. }
+                    )
+                ),
+                "expected Expired or ExpiredContext, got: {tls_err}"
+            );
+        })
+        .await;
     Ok(())
 }
 
@@ -408,7 +503,12 @@ async fn test_ssl_cert_file_wrong_cert_rejected() -> Result<()> {
     let cert_b = TestCertificate::new()?;
     client()
         .ssl_cert_file(&cert_a.trust_path)
-        .expect_https_connect_fails(&cert_b)
+        .expect_https_connect_fails_with_tls_error(&cert_b, |tls_err| {
+            assert_eq!(
+                tls_err,
+                &rustls::Error::InvalidCertificate(rustls::CertificateError::BadSignature)
+            );
+        })
         .await;
     Ok(())
 }
